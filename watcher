@@ -1,0 +1,36 @@
+#!/usr/bin/env python
+#
+# Robert Haines.
+#
+# BSD Licenced. See LICENCE for details.
+#
+
+import sys
+import os
+import inotifyx as inx
+
+if len(sys.argv) == 1:
+    print >> sys.stderr, 'usage: watcher path'
+    sys.exit(1)
+
+path = sys.argv[1]
+
+fp = open(path)
+fp.seek(0, os.SEEK_END)
+fd = inx.init()
+
+try:
+    wd = inx.add_watch(fd, path, inx.IN_MODIFY)
+
+    try:
+        while True:
+            events = inx.get_events(fd)
+            for event in events:
+                print '$ ' + fp.readline(),
+    except KeyboardInterrupt:
+        pass
+
+finally:
+    inx.rm_watch(fd, wd)
+    os.close(fd)
+    fp.close()
